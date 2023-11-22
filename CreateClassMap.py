@@ -60,9 +60,9 @@ class ClassClass:
         for ix in range(6):
             for iy in range(6):
                 split=0 if (ix<3) else 1
-                yoffset=5500
-                yheight=4600
-                tbxheight=700
+                yoffset=5000+60
+                yheight=4700-10
+                tbxheight=600
                 if (iy==0):
                     if (ix<4):
                         continue
@@ -72,17 +72,20 @@ class ClassClass:
                 if ( (ix==0) or (ix==3) ):
                     nm="table"+str(ix)+"-"+str(iy)
                     self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*yheight+yoffset),Size(9000,200))
+
+                if (self.classe[ix][iy]):
+                    f=self.classe[ix][iy].vignette
+                    p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-4000)
+                    self.insertImage(f,nm,p,Size (2500, 4150))
+
                 p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-tbxheight-300)
                 if (self.classe[ix][iy]):
                     txt=self.classe[ix][iy].prenom
                 else:
                     txt=str(ix)+" "+str(iy)
+
                 nm="bx"+str(ix)+"-"+str(iy)
                 self.drawTextBox(nm,p,Size(3000,tbxheight),txt)
-
-                if (self.classe[ix][iy]):
-                    f=self.classe[ix][iy].vignette
-                    self.insertImage(f,nm,p,Size (2500, 4150))
 
 
     def drawTextBox(self,n,p,s,t,color=_RGB(240, 240, 255)):
@@ -95,13 +98,13 @@ class ClassClass:
         txtbox.LineStyle = SOLID_LINESTYLE
         txtbox.LineWidth = 50
         txtbox.LineColor = _RGB(0, 0, 0)
-        txtbox.FillStyle = SOLID_FILLSTYLE
-        txtbox.FillColor = color
+        #txtbox.FillStyle = SOLID_FILLSTYLE
+        #txtbox.FillColor = color
 
         txtbox.setString(t)
         txtbox.TextHorizontalAdjust = CENTER_TEXTHA
         txtbox.TextVerticalAdjust   = CENTER_TEXTVA
-        txtbox.CharHeight = 18
+        txtbox.CharHeight = 16
 
 
     def drawRect(self,n,p,s):
@@ -118,21 +121,23 @@ class ClassClass:
         rect.FillColor = _RGB(200, 200, 255)
 
     def insertImage(self,f,n,p,s):
-        return
+        img = self.oDoc.createInstance('com.sun.star.drawing.GraphicObjectShape')
+        img.GraphicURL = 'file://' + f
+        self.page1.add(img)
+        img.setPosition(p)
+        img.setSize (s)
+
 
 class UnEleve:
-    def __init__(self,e):
+    def __init__(self,e,cid):
         self.prenom=e[0]
         self.nom=e[1]
-        self.loc=e[2]
-
-    def setIde(self,ide):
-        self.ide=ide
-        cid=str(self.loc[0])+"-"+str(self.loc[1])
+        self.ide=e[2]
+        self.loc=e[3]
+        self.cid=cid
         self.vignette=os.path.join(basevignettes,
-                                   "vignette_"+cid,
-                                   "vig_"+bvn+"_"+cid+str(self.ide)+".jpg")
-
+                                   "vignette_"+self.cid,
+                                   "vig_"+bvn+"_"+self.cid+"-"+str(self.ide)+".jpg")
 
     def __str__(self):
         return self.prenom+" "+self.nom+" "+str(self.loc)
@@ -143,12 +148,7 @@ class UneClasse:
         self.cid=str(c[0])+"_"+str(c[1])
         self.eleves=[]
         for e in c[2]:
-            self.eleves.append(UnEleve(e))
-        self.eleves.sort(key=lambda x: x.nom)
-        ide=0
-        for e in self.eleves:
-            e.setIde(ide)
-            ide+=1
+            self.eleves.append(UnEleve(e,self.cid))
 
     def getFullArray(self):
         ea=[]
