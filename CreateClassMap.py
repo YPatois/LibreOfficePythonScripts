@@ -1,5 +1,7 @@
 # coding: utf-8
 import sys
+import os.path
+
 from time import sleep
 
 import uno
@@ -14,7 +16,7 @@ from com.sun.star.drawing.TextHorizontalAdjust import CENTER as CENTER_TEXTHA
 from com.sun.star.drawing.TextVerticalAdjust   import CENTER as CENTER_TEXTVA
 
 
-from ymydata import lesclasses
+from ymydata import lesclasses, basevignettes, bvn
 
 CTX = uno.getComponentContext()
 SM = CTX.getServiceManager()
@@ -46,8 +48,10 @@ def _RGB(red: "# as 0-255", green: int, blue: "one-byte values") -> int:
 
     # note:  ''red'', ''green'' and ''blue'' arguments of RGB function are one byte unsigned integer values.
 
+
 class ClassClass:
-    def __init__(self):
+    def __init__(self,classe):
+        self.classe=classe
         self.oDoc = XSCRIPTCONTEXT.getDocument()
         self.page1 = self.oDoc.DrawPages.getByIndex(0)
 
@@ -56,8 +60,9 @@ class ClassClass:
         for ix in range(6):
             for iy in range(6):
                 split=0 if (ix<3) else 1
-                yoffset=4000
-                yheight=4000
+                yoffset=5500
+                yheight=4600
+                tbxheight=700
                 if (iy==0):
                     if (ix<4):
                         continue
@@ -67,10 +72,18 @@ class ClassClass:
                 if ( (ix==0) or (ix==3) ):
                     nm="table"+str(ix)+"-"+str(iy)
                     self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*yheight+yoffset),Size(9000,200))
-                p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-1000)
-                txt=str(ix)+" "+str(iy)
+                p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-tbxheight-300)
+                if (self.classe[ix][iy]):
+                    txt=self.classe[ix][iy].prenom
+                else:
+                    txt=str(ix)+" "+str(iy)
                 nm="bx"+str(ix)+"-"+str(iy)
-                self.drawTextBox(nm,p,Size(3000,700),txt)
+                self.drawTextBox(nm,p,Size(3000,tbxheight),txt)
+
+                if (self.classe[ix][iy]):
+                    f=self.classe[ix][iy].vignette
+                    self.insertImage(f,nm,p,Size (2500, 4150))
+
 
     def drawTextBox(self,n,p,s,t,color=_RGB(240, 240, 255)):
         txtbox = self.oDoc.createInstance("com.sun.star.drawing.TextShape")
@@ -104,12 +117,22 @@ class ClassClass:
         rect.FillStyle = SOLID_FILLSTYLE
         rect.FillColor = _RGB(200, 200, 255)
 
+    def insertImage(self,f,n,p,s):
+        return
 
 class UnEleve:
     def __init__(self,e):
         self.prenom=e[0]
         self.nom=e[1]
         self.loc=e[2]
+
+    def setIde(self,ide):
+        self.ide=ide
+        cid=str(self.loc[0])+"-"+str(self.loc[1])
+        self.vignette=os.path.join(basevignettes,
+                                   "vignette_"+cid,
+                                   "vig_"+bvn+"_"+cid+str(self.ide)+".jpg")
+
 
     def __str__(self):
         return self.prenom+" "+self.nom+" "+str(self.loc)
@@ -121,6 +144,23 @@ class UneClasse:
         self.eleves=[]
         for e in c[2]:
             self.eleves.append(UnEleve(e))
+        self.eleves.sort(key=lambda x: x.nom)
+        ide=0
+        for e in self.eleves:
+            e.setIde(ide)
+            ide+=1
+
+    def getFullArray(self):
+        ea=[]
+        for ix in range(6):
+            c=[]
+            for iy in range (6):
+                c.append(None)
+            ea.append(c)
+        for e in  self.eleves:
+            ea[e.loc[0]][e.loc[1]]=e
+        return ea
+
 
     def __str__(self):
         s=self.cid+"\n"
@@ -131,18 +171,21 @@ class UneClasse:
 class LesClasses:
     def __init__(self,lc):
         self.lesclasses={}
-        self.classesIdx=[]
+        self.classesCid=[]
         for c in lc:
             uc=UneClasse(c)
             self.lesclasses[uc.cid]=uc
-            self.classesIdx.append(uc.cid)
+            self.classesCid.append(uc.cid)
+
+    def getClasse(self,cid):
+        return self.lesclasses[cid]
+
     def __str__(self):
         s=""
-        for cid in self.classesIdx:
+        for cid in self.classesCid:
             s+=str(self.lesclasses[cid])
             s+=" ----- "
         return s
-
 
 
 def CreateClasseMap():
@@ -154,7 +197,7 @@ def CreateClasseMap():
     lc=LesClasses(lesclasses)
     print(lc)
 
-    cc=ClassClass()
+    cc=ClassClass(lc.getClasse("4_3").getFullArray())
     cc.doIt()
 
     print("--- stop ----")
