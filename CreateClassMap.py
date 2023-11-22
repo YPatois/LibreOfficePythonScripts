@@ -1,4 +1,5 @@
 # coding: utf-8
+import sys
 from time import sleep
 
 import uno
@@ -11,6 +12,9 @@ from com.sun.star.drawing.FillStyle import SOLID as SOLID_FILLSTYLE
 from com.sun.star.drawing.LineStyle import SOLID as SOLID_LINESTYLE
 from com.sun.star.drawing.TextHorizontalAdjust import CENTER as CENTER_TEXTHA
 from com.sun.star.drawing.TextVerticalAdjust   import CENTER as CENTER_TEXTVA
+
+
+from ymydata import lesclasses
 
 CTX = uno.getComponentContext()
 SM = CTX.getServiceManager()
@@ -52,7 +56,7 @@ class ClassClass:
         for ix in range(6):
             for iy in range(6):
                 split=0 if (ix<3) else 1
-                yoffset=5500
+                yoffset=5000
                 if (iy==0):
                     if (ix<4):
                         continue
@@ -106,7 +110,9 @@ class ClassClass:
 
 def CreateClasseMap():
     print ("--- start ----")
-
+    print (sys.version)
+    print(sys.path)
+    print(lesclasses)
     cc=ClassClass()
     cc.doIt()
 
