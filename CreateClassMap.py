@@ -42,40 +42,65 @@ def _RGB(red: "# as 0-255", green: int, blue: "one-byte values") -> int:
 
     # note:  ''red'', ''green'' and ''blue'' arguments of RGB function are one byte unsigned integer values.
 
-
-
 class ClassClass:
     def __init__(self):
         self.oDoc = XSCRIPTCONTEXT.getDocument()
         self.page1 = self.oDoc.DrawPages.getByIndex(0)
 
+
     def doIt(self):
         for ix in range(6):
             for iy in range(6):
+                split=0 if (ix<3) else 1
+                yoffset=5500
                 if (iy==0):
                     if (ix<4):
                         continue
-                p=Point(ix*3000+1000,iy*5000+1000)
+                    if (ix==4):
+                        nm="table"+str(ix)+"-"+str(iy)
+                        self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*4500+yoffset),Size(6000,200))
+                if ( (ix==0) or (ix==3) ):
+                    nm="table"+str(ix)+"-"+str(iy)
+                    self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*4500+yoffset),Size(9000,200))
+                p=Point(ix*3000+1000+1000*split,iy*4500+yoffset-1000)
                 txt=str(ix)+" "+str(iy)
-                self.drawBox("bx1",p,Size(3000,700),txt)
+                nm="bx"+str(ix)+"-"+str(iy)
+                self.drawTextBox(nm,p,Size(3000,700),txt)
 
-    def drawBox(self,n,p,s,t):
-        box = self.oDoc.createInstance("com.sun.star.drawing.TextShape")
-        self.page1.add(box)
-        box.setName(n)
-        box.setPosition(p)
-        box.setSize(s)
+    def drawTextBox(self,n,p,s,t,color=_RGB(240, 240, 255)):
+        txtbox = self.oDoc.createInstance("com.sun.star.drawing.TextShape")
+        self.page1.add(txtbox)
+        txtbox.setName(n)
+        txtbox.setPosition(p)
+        txtbox.setSize(s)
 
-        box.LineStyle = SOLID_LINESTYLE
-        box.LineWidth = 100
-        box.LineColor = _RGB(0, 0, 0)
-        box.FillStyle = SOLID_FILLSTYLE
-        box.FillColor = _RGB(240, 240, 255)
+        txtbox.LineStyle = SOLID_LINESTYLE
+        txtbox.LineWidth = 50
+        txtbox.LineColor = _RGB(0, 0, 0)
+        txtbox.FillStyle = SOLID_FILLSTYLE
+        txtbox.FillColor = color
 
-        box.setString(t)
-        box.TextHorizontalAdjust = CENTER_TEXTHA
-        box.TextVerticalAdjust   = CENTER_TEXTVA
-        box.CharHeight = 18
+        txtbox.setString(t)
+        txtbox.TextHorizontalAdjust = CENTER_TEXTHA
+        txtbox.TextVerticalAdjust   = CENTER_TEXTVA
+        txtbox.CharHeight = 18
+
+
+    def drawRect(self,n,p,s):
+        rect = self.oDoc.createInstance("com.sun.star.drawing.RectangleShape")
+        self.page1.add(rect)
+        rect.setName(n)
+        rect.setPosition(p)
+        rect.setSize(s)
+
+        rect.LineStyle = SOLID_LINESTYLE
+        rect.LineWidth = 10
+        rect.LineColor = _RGB(0, 0, 0)
+        rect.FillStyle = SOLID_FILLSTYLE
+        rect.FillColor = _RGB(200, 200, 255)
+
+
+
 
 
 
