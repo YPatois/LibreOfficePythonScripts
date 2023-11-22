@@ -57,12 +57,26 @@ class ClassClass:
 
 
     def doIt(self):
+        yoffset=5000+600-150
+        yheight=4700-100+10
+        tbxheight=600
+        if (self.classe[0][0]):
+            for e in self.classe[0][0]:
+                f=e.vignette
+                p=Point(1000+130,yoffset-4400)
+                nm=e.prenom
+                self.insertImage(f,nm,p,Size (2741, 4550))
+
+        if (self.classe[1][0]):
+            for e in self.classe[1][0]:
+                f=e.vignette
+                p=Point(3000+1000+130,yoffset-4400)
+                nm=e.prenom
+                self.insertImage(f,nm,p,Size (2741, 4550))
+
         for ix in range(6):
             for iy in range(6):
                 split=0 if (ix<3) else 1
-                yoffset=5000+60
-                yheight=4700-10
-                tbxheight=600
                 if (iy==0):
                     if (ix<4):
                         continue
@@ -75,10 +89,11 @@ class ClassClass:
 
                 if (self.classe[ix][iy]):
                     f=self.classe[ix][iy].vignette
-                    p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-4000)
-                    self.insertImage(f,nm,p,Size (2500, 4150))
+                    nm="img"+str(ix)+"-"+str(iy)
+                    p=Point(ix*3000+1000+1000*split+130,iy*yheight+yoffset-4400)
+                    self.insertImage(f,nm,p,Size (2741, 4550))
 
-                p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-tbxheight-300)
+                p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-tbxheight-200)
                 if (self.classe[ix][iy]):
                     txt=self.classe[ix][iy].prenom
                 else:
@@ -92,8 +107,6 @@ class ClassClass:
         txtbox = self.oDoc.createInstance("com.sun.star.drawing.TextShape")
         self.page1.add(txtbox)
         txtbox.setName(n)
-        txtbox.setPosition(p)
-        txtbox.setSize(s)
 
         txtbox.LineStyle = SOLID_LINESTYLE
         txtbox.LineWidth = 50
@@ -104,7 +117,19 @@ class ClassClass:
         txtbox.setString(t)
         txtbox.TextHorizontalAdjust = CENTER_TEXTHA
         txtbox.TextVerticalAdjust   = CENTER_TEXTVA
-        txtbox.CharHeight = 16
+        if (len(t)>10):
+            txtbox.CharHeight = 10
+        elif (len(t)>8):
+            txtbox.CharHeight = 12
+        elif (len(t)>7):
+            txtbox.CharHeight = 14
+        elif (len(t)>6):
+            txtbox.CharHeight = 15
+        else:
+            txtbox.CharHeight = 16
+        txtbox.CharContoured = True
+        txtbox.setPosition(p)
+        txtbox.setSize(s)
 
 
     def drawRect(self,n,p,s):
@@ -157,8 +182,19 @@ class UneClasse:
             for iy in range (6):
                 c.append(None)
             ea.append(c)
+        ea[0][0]=[]
+        ea[1][0]=[]
         for e in  self.eleves:
-            ea[e.loc[0]][e.loc[1]]=e
+            if ((e.loc[0] == 0) and (e.loc[1] == 0)):
+                    ea[0][0].append(e)
+                    print("Not placed: "+str(e))
+            else:
+                if(not ea[e.loc[0]][e.loc[1]]):
+                    ea[e.loc[0]][e.loc[1]]=e
+                else:
+                    print("Overlay: "+str(e)+" with "+str(ea[e.loc[0]][e.loc[1]]))
+                    e.prenom=e.prenom+str(e.loc)
+                    ea[1][0].append(e)
         return ea
 
 
@@ -195,61 +231,10 @@ def CreateClasseMap():
     #print(lesclasses)
 
     lc=LesClasses(lesclasses)
-    print(lc)
+    #print(lc)
 
-    cc=ClassClass(lc.getClasse("4_3").getFullArray())
+    cc=ClassClass(lc.getClasse("4_5").getFullArray())
     cc.doIt()
 
     print("--- stop ----")
     return None
-
-    #oTBox = ThisComponent.createInstance("com.sun.star.drawing.TextShape")
-    #oPos = oTBox.Position
-    #oPos.X = 2500
-    #oPos.Y = 2500
-    #oTBox.Position = oPos
-    #oSize = oTBox.Size
-    #oSize.Width = 7000
-    #oSize.Height = 1500
-    #oTBox.Size = oSize
-    #oDP = ThisComponent.DrawPages.getByName("page1")
-    #oDP.add(oTBox)
-    #oTBox.String = "The string"
-
-def InsertAll():
-    print ("--- start ----")
-    file_list = glob.glob('/home/ypatois/unison/work/enseignement/college_nelson_mandela/trombinoscope/vignette_4_3/*.jpg')
-    for f in file_list:
-        InsertOne(f)
-    print("--- stop ----")
-    return None
-
-
-def InsertOne(f):
-    oDoc = XSCRIPTCONTEXT.getDocument()
-    #call_dispatch(oDoc,".uno:Deselect")
-    Page1 = oDoc.DrawPages.getByIndex(0)
-    img = oDoc.createInstance('com.sun.star.drawing.GraphicObjectShape')
-    img.GraphicURL = 'file://' + f
-    position = Point(1000,1000)
-    img.setPosition(position)
-    size = Size (2500, 4150)
-    img.setSize (size)
-    Page1.add(img)
-    img.setSize (size)
-    img.setPosition(position)
-    #w = img.actualSize.Width
-    #h = img.actualSize.Height
-    #ui.Print (img.GraphicURL)
-    #text.insertTextContent(cursor, img, False)
-    #cursor.gotoEnd(False)
-    #pv=PropertyValue()
-    #pv.Name="toto"
-    #pv.Value=0
-    #dispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
-    #dispatcher.executeDispatch(oDoc, ".uno:Deselect","",0,pv)
-    #call_dispatch(oDoc,".uno:Deselect")
-    print(f)
-    #thiscomponent.currentcontroller.frame.layoutmanager.HideCurrentUI = True
-    #thiscomponent.currentcontroller.frame.layoutmanager.HideCurrentUI = False
-    #sleep(1)
