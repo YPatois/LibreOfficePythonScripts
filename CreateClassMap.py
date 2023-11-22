@@ -43,27 +43,40 @@ def _RGB(red: "# as 0-255", green: int, blue: "one-byte values") -> int:
     # note:  ''red'', ''green'' and ''blue'' arguments of RGB function are one byte unsigned integer values.
 
 
+
+class ClassClass:
+    def __init__(self):
+        self.oDoc = XSCRIPTCONTEXT.getDocument()
+        self.page1 = self.oDoc.DrawPages.getByIndex(0)
+
+    def doIt(self):
+        self.drawBox("bx1",Point(5000,5000),Size(5000,2000),"Test")
+
+    def drawBox(self,n,p,s,t):
+        box = self.oDoc.createInstance("com.sun.star.drawing.TextShape")
+        self.page1.add(box)
+        box.setName(n)
+        box.setPosition(p)
+        box.setSize(s)
+
+        box.LineStyle = SOLID_LINESTYLE
+        box.LineWidth = 100
+        box.LineColor = _RGB(0, 0, 0)
+        box.FillStyle = SOLID_FILLSTYLE
+        box.FillColor = _RGB(240, 240, 255)
+
+        box.setString(t)
+        box.TextHorizontalAdjust = CENTER_TEXTHA
+        box.TextVerticalAdjust   = CENTER_TEXTVA
+        box.CharHeight = 18
+
+
+
 def CreateClasseMap():
     print ("--- start ----")
 
-    oDoc = XSCRIPTCONTEXT.getDocument()
-    page1 = oDoc.DrawPages.getByIndex(0)
-
-    box = oDoc.createInstance("com.sun.star.drawing.TextShape")
-    page1.add(box)
-    box.setName("bx1")
-    box.setPosition(Point(5000,8000))
-    box.setSize(Size(5000,2000))
-
-    box.LineStyle = SOLID_LINESTYLE
-    box.LineWidth = 100
-    box.LineColor = _RGB(0, 0, 0)
-    box.FillStyle = SOLID_FILLSTYLE
-    box.FillColor = _RGB(240, 240, 255)
-
-    box.setString("Test")
-    box.TextHorizontalAdjust = CENTER_TEXTHA
-    box.TextVerticalAdjust   = CENTER_TEXTVA
+    cc=ClassClass()
+    cc.doIt()
 
     print("--- stop ----")
     return None
