@@ -56,17 +56,18 @@ class ClassClass:
         for ix in range(6):
             for iy in range(6):
                 split=0 if (ix<3) else 1
-                yoffset=5000
+                yoffset=4000
+                yheight=4000
                 if (iy==0):
                     if (ix<4):
                         continue
                     if (ix==4):
                         nm="table"+str(ix)+"-"+str(iy)
-                        self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*4500+yoffset),Size(6000,200))
+                        self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*yheight+yoffset),Size(6000,200))
                 if ( (ix==0) or (ix==3) ):
                     nm="table"+str(ix)+"-"+str(iy)
-                    self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*4500+yoffset),Size(9000,200))
-                p=Point(ix*3000+1000+1000*split,iy*4500+yoffset-1000)
+                    self.drawRect(nm,Point(ix*3000+1000+1000*split,iy*yheight+yoffset),Size(9000,200))
+                p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-1000)
                 txt=str(ix)+" "+str(iy)
                 nm="bx"+str(ix)+"-"+str(iy)
                 self.drawTextBox(nm,p,Size(3000,700),txt)
@@ -104,15 +105,55 @@ class ClassClass:
         rect.FillColor = _RGB(200, 200, 255)
 
 
+class UnEleve:
+    def __init__(self,e):
+        self.prenom=e[0]
+        self.nom=e[1]
+        self.loc=e[2]
 
+    def __str__(self):
+        return self.prenom+" "+self.nom+" "+str(self.loc)
+
+
+class UneClasse:
+    def __init__(self,c):
+        self.cid=str(c[0])+"_"+str(c[1])
+        self.eleves=[]
+        for e in c[2]:
+            self.eleves.append(UnEleve(e))
+
+    def __str__(self):
+        s=self.cid+"\n"
+        for e in self.eleves:
+            s+=str(e)+"\n"
+        return s
+
+class LesClasses:
+    def __init__(self,lc):
+        self.lesclasses={}
+        self.classesIdx=[]
+        for c in lc:
+            uc=UneClasse(c)
+            self.lesclasses[uc.cid]=uc
+            self.classesIdx.append(uc.cid)
+    def __str__(self):
+        s=""
+        for cid in self.classesIdx:
+            s+=str(self.lesclasses[cid])
+            s+=" ----- "
+        return s
 
 
 
 def CreateClasseMap():
     print ("--- start ----")
-    print (sys.version)
-    print(sys.path)
-    print(lesclasses)
+    #print (sys.version)
+    #print(sys.path)
+    #print(lesclasses)
+
+    lc=LesClasses(lesclasses)
+    print(lc)
+
     cc=ClassClass()
     cc.doIt()
 
