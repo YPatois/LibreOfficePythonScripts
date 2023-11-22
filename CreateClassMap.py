@@ -50,7 +50,14 @@ class ClassClass:
         self.page1 = self.oDoc.DrawPages.getByIndex(0)
 
     def doIt(self):
-        self.drawBox("bx1",Point(5000,5000),Size(5000,2000),"Test")
+        for ix in range(6):
+            for iy in range(6):
+                if (iy==0):
+                    if (ix<4):
+                        continue
+                p=Point(ix*3000+1000,iy*5000+1000)
+                txt=str(ix)+" "+str(iy)
+                self.drawBox("bx1",p,Size(3000,700),txt)
 
     def drawBox(self,n,p,s,t):
         box = self.oDoc.createInstance("com.sun.star.drawing.TextShape")
