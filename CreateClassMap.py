@@ -3,6 +3,7 @@ import sys
 import os.path
 
 from time import sleep
+import csv
 
 import uno
 import glob
@@ -15,11 +16,11 @@ from com.sun.star.drawing.LineStyle import SOLID as SOLID_LINESTYLE
 from com.sun.star.drawing.TextHorizontalAdjust import CENTER as CENTER_TEXTHA
 from com.sun.star.drawing.TextVerticalAdjust   import CENTER as CENTER_TEXTVA
 
-
-from ymydata import lesclasses, basevignettes, bvn
+from ymydata import lesclasses, basevignettes, bvn, phynotesfrstsem
 
 CTX = uno.getComponentContext()
 SM = CTX.getServiceManager()
+
 
 def create_instance(name, with_context=False):
     if with_context:
@@ -50,13 +51,16 @@ def _RGB(red: "# as 0-255", green: int, blue: "one-byte values") -> int:
 
 
 class ClassClass:
-    def __init__(self,classe):
+    def __init__(self,classe,cid):
         self.classe=classe
+        self.cid=cid
         self.oDoc = XSCRIPTCONTEXT.getDocument()
         self.page1 = self.oDoc.DrawPages.getByIndex(0)
 
 
     def doIt(self):
+        self.drawTextBox("clsnm",Point(1000,1000),Size(1500,2000),"Classe: "+self.cid)
+
         yoffset=5000+600-150
         yheight=4700-100+10
         tbxheight=600
@@ -95,7 +99,7 @@ class ClassClass:
 
                 p=Point(ix*3000+1000+1000*split,iy*yheight+yoffset-tbxheight-200)
                 if (self.classe[ix][iy]):
-                    txt=self.classe[ix][iy].prenom
+                    txt=str(self.classe[ix][iy].phynote)+" "+self.classe[ix][iy].prenom
                 else:
                     txt=str(ix)+" "+str(iy)
 
@@ -154,7 +158,7 @@ class ClassClass:
 
 
 class UnEleve:
-    def __init__(self,e,cid):
+    def __init__(self,e,cid,nd):
         self.prenom=e[0]
         self.nom=e[1]
         self.ide=e[2]
@@ -163,17 +167,29 @@ class UnEleve:
         self.vignette=os.path.join(basevignettes,
                                    "vignette_"+self.cid,
                                    "vig_"+bvn+"_"+self.cid+"-"+str(self.ide)+".jpg")
+        key=splitting(self.prenom)+splitting(self.nom)
+        if (not key in nd):
+            print("hashnotes: missing: "+str(self))
+            sys.exit(-1)
+        else:
+            self.phynote=int(nd[key])
+
+    def __lt__(self,other):
+        if (self.nom != other.nom):
+            return(self.nom<other.nom)
+        return(self.prenom<other.prenom)
+
 
     def __str__(self):
         return self.prenom+" "+self.nom+" "+str(self.loc)
 
 
 class UneClasse:
-    def __init__(self,c):
+    def __init__(self,c,nd):
         self.cid=str(c[0])+"_"+str(c[1])
         self.eleves=[]
         for e in c[2]:
-            self.eleves.append(UnEleve(e,self.cid))
+            self.eleves.append(UnEleve(e,self.cid,nd))
 
     def getFullArray(self):
         ea=[]
@@ -185,9 +201,13 @@ class UneClasse:
         ea[0][0]=[]
         ea[1][0]=[]
         for e in  self.eleves:
+            #print(e)
             if ((e.loc[0] == 0) and (e.loc[1] == 0)):
                     ea[0][0].append(e)
                     print("Not placed: "+str(e))
+            elif ((e.loc[1] == 0) and (e.loc[0] == 0)):
+                    ea[1][0].append(e)
+                    print("Whats up: "+str(e))
             else:
                 if(not ea[e.loc[0]][e.loc[1]]):
                     ea[e.loc[0]][e.loc[1]]=e
@@ -197,7 +217,43 @@ class UneClasse:
                     ea[1][0].append(e)
         return ea
 
+    def sort(self):
+        self.eleves.sort()
+        self.sort2()
+        #print(self.eleves)
 
+    def sort1(self):
+        i=5
+        j=5
+        n=0
+        for e in self.eleves:
+            e.prenom=str(n)+' - ( '+str(i)+' , '+str(j)+' )'
+            e.loc=[i,j]
+            i-=1
+            if (i<0):
+                i=5
+                j-=1
+            n+=1
+
+    def sort2(self):
+        i=0
+        j=5
+        n=0
+        for e in self.eleves:
+            #e.prenom=str(n)+' - ( '+str(i)+' , '+str(j)+' )'
+            e.loc=[i,j]
+            l=[e.prenom,e.nom,e.ide,e.loc]
+            print(l)
+            j-=1
+            if (i!=5):
+                if (j==0):
+                    j=5
+                    i+=1
+            else:
+                if (j==-1):
+                    j=5
+                    i+=1
+            n+=1
     def __str__(self):
         s=self.cid+"\n"
         for e in self.eleves:
@@ -205,16 +261,21 @@ class UneClasse:
         return s
 
 class LesClasses:
-    def __init__(self,lc):
+    def __init__(self,lc,nd,alpha=False):
+        self.alpha=alpha # Alphabetic sorting
         self.lesclasses={}
         self.classesCid=[]
+        self.nd=nd
         for c in lc:
-            uc=UneClasse(c)
+            uc=UneClasse(c,nd)
             self.lesclasses[uc.cid]=uc
             self.classesCid.append(uc.cid)
 
     def getClasse(self,cid):
-        return self.lesclasses[cid]
+        lc=self.lesclasses[cid]
+        if (self.alpha):
+            lc.sort()
+        return lc
 
     def __str__(self):
         s=""
@@ -224,17 +285,45 @@ class LesClasses:
         return s
 
 
+def splitting(s):
+    return s.split()[0].split("-")[0]
+
+
+def hashnotes():
+    notedict={}
+    for item in phynotesfrstsem:
+        key=splitting(item[0])+splitting(item[1])
+        value=item[2]
+        if (not key in notedict):
+            notedict[key]=value
+        else:
+            print("hashnotes: duplicates: "+str(item))
+            sys.exit(-1)
+    return (notedict)
+
 def CreateClasseMap():
     print ("--- start ----")
+    notedict=hashnotes()
     #print (sys.version)
     #print(sys.path)
     #print(lesclasses)
 
-    lc=LesClasses(lesclasses)
+    lc=LesClasses(lesclasses,notedict,True)
     #print(lc)
-
-    cc=ClassClass(lc.getClasse("4_5").getFullArray())
+    cid="4_3"
+    cc=ClassClass(lc.getClasse(cid).getFullArray(),cid)
     cc.doIt()
 
     print("--- stop ----")
     return None
+
+
+# --------------------------------------------------------------------------
+# Welcome to Derry, Maine
+# --------------------------------------------------------------------------
+def main():
+    return
+
+# --------------------------------------------------------------------------
+if __name__ == '__main__':
+    main()
