@@ -168,11 +168,14 @@ class UnEleve:
                                    "vignette_"+self.cid,
                                    "vig_"+bvn+"_"+self.cid+"-"+str(self.ide)+".jpg")
         key=splitting(self.prenom)+splitting(self.nom)
-        if (not key in nd):
-            print("hashnotes: missing: "+str(self))
-            sys.exit(-1)
+        if (nd):
+            if (not key in nd):
+                print("hashnotes: missing: "+str(self))
+                sys.exit(-1)
+            else:
+                self.phynote=int(nd[key])
         else:
-            self.phynote=int(nd[key])
+            self.phynote=""
 
     def __lt__(self,other):
         if (self.nom != other.nom):
@@ -202,6 +205,7 @@ class UneClasse:
         ea[1][0]=[]
         for e in  self.eleves:
             #print(e)
+            e.prenom+=" "+str(e.loc)
             if ((e.loc[0] == 0) and (e.loc[1] == 0)):
                     ea[0][0].append(e)
                     print("Not placed: "+str(e))
@@ -227,7 +231,7 @@ class UneClasse:
         j=5
         n=0
         for e in self.eleves:
-            e.prenom=str(n)+' - ( '+str(i)+' , '+str(j)+' )'
+            #e.prenom=str(n)+' - ( '+str(i)+' , '+str(j)+' )'
             e.loc=[i,j]
             i-=1
             if (i<0):
@@ -303,14 +307,11 @@ def hashnotes():
 
 def CreateClasseMap():
     print ("--- start ----")
-    notedict=hashnotes()
-    #print (sys.version)
-    #print(sys.path)
-    #print(lesclasses)
-
-    lc=LesClasses(lesclasses,notedict,True)
+    #notedict=hashnotes()
+    notedict=None
+    lc=LesClasses(lesclasses,notedict,False)
     #print(lc)
-    cid="4_3"
+    cid="6_5"
     cc=ClassClass(lc.getClasse(cid).getFullArray(),cid)
     cc.doIt()
 
